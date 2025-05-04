@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Book } from './schemas/book.schema';
 import * as mongoose from 'mongoose';
@@ -17,8 +21,8 @@ export class BookService {
     const data = Object.assign(book, {
       user: user._id,
     });
-    const createdBook = new this.bookModel(data);
-    return createdBook.save();
+    const res = await this.bookModel.create(data);
+    return res;
   }
 
   async findAll(query: Query): Promise<Book[]> {
@@ -39,9 +43,11 @@ export class BookService {
     return books;
   }
 
-  async findById(id: string): Promise<Book | null> {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw new NotFoundException(`Invalid ID format`);
+  async findById(id: string): Promise<Book> {
+    const isValidId = mongoose.isValidObjectId(id);
+
+    if (!isValidId) {
+      throw new BadRequestException(`Invalid ID format`);
     }
 
     const book = await this.bookModel.findById(id);
