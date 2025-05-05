@@ -28,6 +28,9 @@ export class Book {
   @Prop({ required: true, enum: Category })
   category: Category;
 
+  @Prop({ type: [String], default: [] })
+  images?: string[];
+
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   user: User;
 }

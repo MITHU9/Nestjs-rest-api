@@ -9,6 +9,7 @@ import * as mongoose from 'mongoose';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { Query } from 'express-serve-static-core';
 import { User } from '../auth/schemas/user.schema';
+import { uploadImagesToCloudinary } from 'src/utils/cloudinary';
 
 @Injectable()
 export class BookService {
@@ -88,5 +89,24 @@ export class BookService {
     }
 
     return res;
+  }
+
+  async uploadImages(id: string, files: Array<Express.Multer.File>) {
+    // Step 1: Validate ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw new NotFoundException(`Invalid ID format`);
+    }
+    // Step 2: Find the book
+    const book = await this.bookModel.findById(id);
+    if (!book) {
+      throw new NotFoundException(`Book not found`);
+    }
+    // Step 3: Upload to Cloudinary
+    const uploadedImageUrls = await uploadImagesToCloudinary(files);
+    // Step 4: Update book images
+    book.images?.push(...uploadedImageUrls);
+    // Step 5: Save and return
+    await book.save();
+    return book;
   }
 }
