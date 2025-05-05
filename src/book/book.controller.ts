@@ -25,11 +25,19 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('books')
 export class BookController {
   constructor(private readonly bookService: BookService) {}
 
+  //@SkipThrottle()
+  @Throttle({
+    default: {
+      limit: 3,
+      ttl: 3000,
+    },
+  })
   @Get()
   @Roles(Role.Admin, Role.Moderator)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
